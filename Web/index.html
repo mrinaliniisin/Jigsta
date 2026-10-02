@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jigsta</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="brand">Jigsta</div>
+    <button id="undo" title="Undo (⌘Z)">↶</button>
+    <button id="redo" title="Redo (⇧⌘Z)">↷</button>
+    <div class="seg" id="ratio" title="Grid tile shape">
+      <button data-ratio="3:4">3:4</button><button data-ratio="1:1">1:1</button>
+    </div>
+    <label class="fade">Fade posted <input type="range" id="fade" min="0" max="85" step="5"></label>
+    <label class="fade"><input type="checkbox" id="clean"> Clean preview</label>
+    <button id="import" class="primary">Import Instagram export…</button>
+    <input type="file" id="zipInput" accept=".zip,application/zip" hidden>
+    <input type="file" id="folderInput" webkitdirectory hidden>
+  </header>
+
+  <main>
+    <section class="stage">
+      <div class="phone">
+        <div class="profile">
+          <div class="avatar" id="avatar"></div>
+          <div class="who">
+            <input id="username" placeholder="your_handle" spellcheck="false" autocomplete="off">
+            <div class="stats"><b id="postCount">0</b> posts <span id="plannedCount"></span></div>
+          </div>
+        </div>
+        <div class="grid" id="grid"></div>
+        <div class="empty" id="empty">
+          <p><b>Bring in your current grid</b></p>
+          <ol>
+            <li>Instagram ▸ Settings ▸ Accounts Center ▸ Your information and permissions ▸ <i>Download your information</i></li>
+            <li>Pick your account, choose <i>Posts</i> (or everything), set <b>Format: JSON</b> and <b>Media quality: High</b></li>
+            <li>When the email arrives, download the .zip and drop it here or click <b>Import Instagram export…</b>
+              (already unzipped it? <a href="#" id="importFolder">choose the folder</a>)</li>
+          </ol>
+          <p>Or just drop photos into Ideas and start planning.</p>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <header>
+        <h2>Ideas</h2>
+        <button id="add">Add photos…</button>
+        <input type="file" id="file" accept="image/*" multiple hidden>
+      </header>
+      <p class="hint">Drop photos here, then drag them onto your grid. Numbers show posting order.</p>
+      <div class="tray" id="tray"></div>
+      <footer class="data">
+        <div>Everything stays in this browser — nothing is uploaded.</div>
+        <div class="row">
+          <button id="backup">Back up…</button>
+          <button id="restore">Restore…</button>
+          <input type="file" id="restoreInput" accept=".zip,application/zip" hidden>
+        </div>
+      </footer>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="db.js"></script>
+  <script src="zip.js"></script>
+  <script src="importer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
