@@ -31,6 +31,13 @@ async function storeBlob(blob) {
   mediaURLs.set(id, URL.createObjectURL(blob));
   return id;
 }
+async function dropMedia(ids) {
+  for (const id of ids) {
+    URL.revokeObjectURL(mediaURLs.get(id));
+    mediaURLs.delete(id);
+  }
+  await Promise.all(ids.map((id) => DB.del('media', id)));
+}
 async function loadMedia(ids) {
   await Promise.all(ids.filter((id) => id && !mediaURLs.has(id)).map(async (id) => {
     const blob = await DB.get('media', id);
@@ -355,9 +362,19 @@ async function importExport(source) {
   if (busy) return;
   busy = true;
   const before = JSON.stringify(state);
+  // Photos are written as they're read but only referenced once the import finishes; track them so a
+  // failure can delete them instead of leaving orphans that a retry would duplicate.
+  const stored = [];
+  const store = async (blob) => {
+    // Export photos are usually already ≤1440px, where re-encoding can grow them; keep whichever is smaller.
+    const small = await downscale(blob).catch(() => null);
+    const id = await storeBlob(small && small.size < blob.size ? small : blob);
+    stored.push(id);
+    return id;
+  };
   try {
     const known = Object.values(state.items).map((i) => i.key).filter(Boolean);
-    const posts = await importInstagram(source, known, storeBlob, (i, n) => toast(`Importing ${i} / ${n}…`, true));
+    const posts = await importInstagram(source, known, store, (i, n) => toast(`Importing ${i} / ${n}…`, true));
     if (!posts.length) return toast('No new posts found in that export');
     checkpoint(before);
     for (const p of posts) {
@@ -366,12 +383,14 @@ async function importExport(source) {
       state.posted.push(id);
     }
     state.posted.sort((a, b) => (state.items[b].ts || 0) - (state.items[a].ts || 0));
+    stored.length = 0;   // the grid owns them now
     save();
     render();
     toast(`Imported ${posts.length} posts`);
   } catch (e) {
     console.error(e);
     toast(e.message);
+    await dropMedia(stored).catch(console.error);
   } finally {
     busy = false;
   }
