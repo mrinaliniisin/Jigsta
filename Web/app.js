@@ -359,7 +359,7 @@ async function openZip(file) {
 }
 
 async function importExport(source) {
-  if (busy) return;
+  if (busy) return toast('Still importing the previous export…');
   busy = true;
   const before = JSON.stringify(state);
   // Photos are written as they're read but only referenced once the import finishes; track them so a

@@ -29,7 +29,9 @@ function videoThumbnail(blob) {
   return new Promise((resolve) => {
     const video = document.createElement('video');
     const url = URL.createObjectURL(blob);
-    const done = (result) => { URL.revokeObjectURL(url); resolve(result); };
+    // Some browsers (Safari) never fire loadeddata/error for a detached <video>; without a deadline the import hangs.
+    const timer = setTimeout(() => done(null), 8000);
+    const done = (result) => { clearTimeout(timer); URL.revokeObjectURL(url); resolve(result); };
     Object.assign(video, { muted: true, playsInline: true, preload: 'auto', src: url });
     video.onloadeddata = () => { video.currentTime = Math.min(0.5, (video.duration || 1) / 2); };
     video.onseeked = () => {
